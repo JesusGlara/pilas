@@ -38,55 +38,72 @@ class Node {
   }
   
 function postFija(expression) {
-    const stack = new Pila();
-    const output = [];
+    const pila = new Pila();
+    const salida = [];
   
-    const operators = {
-      '+': 1,
-      '-': 1,
-      '*': 2,
-      '/': 2,
-      '^': 3,
-    };
-  
-    expression = expression.split('');
-  
-    for (let i = 0; i < expression.length; i++) {
-      const token = expression[i];
-  
-      if (/^[a-zA-Z0-9]+$/.test(token)) {
-        output.push(token);
-      } else if (token === '(') {
-        stack.push(token);
-      } else if (token === ')') {
-        while (stack.top() !== '(') {
-          output.push(stack.pop());
-        }
-        stack.pop();
-      } else if (operators[token]) {
-        while (
-          !stack.estaVacia() &&
-          operators[token] <= operators[stack.top()]
-        ) {
-          output.push(stack.pop());
-        }
-        stack.push(token);
+   
+  // Definimos un diccionario que asocia a cada operador su precedencia numérica
+  const diccionario = {
+    '+': 1,
+    '-': 1,
+    '*': 2,
+    '/': 2,
+    '^': 3,
+  };
+
+  // Convertimos la expresión infija en un arreglo de caracteres
+  expression = expression.split('');
+
+  // Recorremos la expresión de izquierda a derecha
+  for (let i = 0; i < expression.length; i++) {
+    // Obtenemos el caracter actual
+    const caracter = expression[i];
+
+    // Si el caracter es alfanumérico, lo agregamos directamente a la salida
+    if (/^[a-zA-Z0-9]+$/.test(caracter)) {
+      salida.push(caracter);
+    }
+    // Si el caracter es un paréntesis izquierdo, lo agregamos a la pila
+    else if (caracter === '(') {
+      pila.push(caracter);
+    }
+    // Si el caracter es un paréntesis derecho, sacamos elementos de la pila y los agregamos a la salida hasta encontrar el paréntesis izquierdo correspondiente
+    else if (caracter === ')') {
+      while (pila.length > 0 && pila[pila.length - 1] !== '(') {
+        salida.push(pila.pop());
       }
+      // Eliminamos el paréntesis izquierdo de la pila
+      pila.pop();
     }
-  
-    while (!stack.estaVacia()) {
-      output.push(stack.pop());
+    // Si el caracter es un operador, sacamos elementos de la pila que tienen mayor o igual precedencia y los agregamos a la salida, y luego agregamos el operador a la pila
+    else if (diccionario[caracter]) {
+      while (
+        pila.length > 0 &&
+        diccionario[caracter] <= diccionario[pila[pila.length - 1]]
+      ) {
+        salida.push(pila.pop());
+      }
+      pila.push(caracter);
     }
-  
-    return output.join('');
   }
+
+  // Sacamos todos los elementos que quedan en la pila y los agregamos a la salida
+  while (pila.length > 0) {
+    salida.push(pila.pop());
+  }
+
+  // Devolvemos la expresión postfija como una cadena de caracteres, separando cada elemento con un espacio en blanco
+  return salida.join(' ');
+}
+
+  
  export default  function prefija(expression) {
     // Crear una pila vacía para los operandos y otra para los operadores.
     const operandos = new Pila();
     const operadores = new Pila();
   
     // Crear un objeto para almacenar la precedencia de los operadores.
-    const precedencia = {
+    const diccionario = {
       '^': 4,
       '*': 3,
       '/': 3,
@@ -100,36 +117,36 @@ function postFija(expression) {
   
     // Recorrer los caracteres de la expresión.
     for (let i = expression.length - 1; i >= 0; i--) {
-      const token = expression[i];
+      const caracter = expression[i];
   
-      // Si el token es un dígito o una letra, es un operando.
-      if (/^[a-zA-Z0-9]+$/.test(token)) {
-        operandos.push(token);
+      // Si el caracter es un dígito o una letra, es un operando.
+      if (/^[a-zA-Z0-9]+$/.test(caracter)) {
+        operandos.push(caracter);
   
-      // Si el token es un paréntesis derecho, es un operador.
-      } else if (token === ')') {
-        operadores.push(token);
+      // Si el caracter  es un paréntesis derecho, es un operador.
+      } else if (caracter === ')') {
+        operadores.push(caracter);
   
-      // Si el token es un paréntesis izquierdo, se deben sacar los operadores
+      // Si el caracter es un paréntesis izquierdo, se deben sacar los operadores
       // de la pila de operadores y agregarlos a la pila de operandos hasta que
       // se encuentre el paréntesis derecho correspondiente.
-      } else if (token === '(') {
+      } else if (caracter === '(') {
         while (operadores.top() !== ')') {
           operandos.push(operadores.pop());
         }
         operadores.pop();
   
-      // Si el token es un operador, se deben sacar de la pila de operadores
-      // todos los operadores cuya precedencia sea mayor o igual a la del token,
+      // Si el caracter  es un operador, se deben sacar de la pila de operadores
+      // todos los operadores cuya precedencia sea mayor o igual a la del caracter,
       // y agregarlos a la pila de operandos.
-      } else if (precedencia[token]) {
+      } else if (diccionario[caracter]) {
         while (
           !operadores.estaVacia() &&
-          precedencia[token] < precedencia[operadores.top()]
+          diccionario[caracter] < diccionario[operadores.top()]
         ) {
           operandos.push(operadores.pop());
         }
-        operadores.push(token);
+        operadores.push(caracter);
       }
     }
   
@@ -139,11 +156,11 @@ function postFija(expression) {
     }
   
     // Invertir la pila de operandos para obtener la expresión en notación prefija.
-    const output = [];
+    const salida = [];
     while (!operandos.estaVacia()) {
-      output.push(operandos.pop());
+      salida.push(operandos.pop());
     }
   
     // Unir los elementos de la pila de salida en una cadena y retornarla.
-    return output.join('');
+    return salida.join('');
   }
